@@ -417,6 +417,7 @@ static int initElf(ELFExec_t *e, LOADER_FD_T f) {
     return -1;
 
   e->entry = h.e_entry;
+  printf("initElf: e->entry = 0x%0x\n",h.e_entry);
   e->sections = h.e_shnum;
   e->sectionTable = h.e_shoff;
   e->sectionTableStrings = sH.sh_offset;
@@ -463,7 +464,8 @@ static int relocateSections(ELFExec_t *e) {
 static int jumpTo(ELFExec_t *e) {
   if (e->entry) {
     entry_t *entry = (entry_t*) (e->text.data + e->entry);
-    LOADER_JUMP_TO(entry);
+    printf("Entry Point 0x%0x + 0x%0x = 0x%0x\n",e->text.data + e->entry, entry);
+    // LOADER_JUMP_TO(entry);
     return 0;
   } else {
     MSG("No entry defined.");
@@ -520,9 +522,10 @@ uint8_t * loadelf(const char *path, uint8_t *memory_array, const char *function_
     if (relocateSections(&exec) == 0) {
       MSG("relocated ok");
     }
+    printf("exec.entry = 0x%0x\n",exec.entry - 1);
     //  ret = jumpTo(&exec);
     freeElf(&exec);
-    return ret;
+    return (memarray + exec.entry - 1);
   } 
   else {
     MSG("Invalid EXEC");
