@@ -510,7 +510,11 @@ uint8_t * loadelf(const char *path, uint8_t *memory_array, const char *function_
   static const ELFEnv_t env = { exports, sizeof(exports) / sizeof(*exports) };
   ELFExec_t exec;
 
+  printf("memory_array = %p\n",memory_array);
   memarray = memory_array; /* capture the address of the data array that was passed to use as memory */
+  printf("memarray = %p\n",memarray);
+
+
 
   if (initElf(&exec, LOADER_OPEN_FOR_RD(path)) != 0) {
     DBG("Invalid elf %s\n", path);
@@ -522,10 +526,11 @@ uint8_t * loadelf(const char *path, uint8_t *memory_array, const char *function_
     if (relocateSections(&exec) == 0) {
       MSG("relocated ok");
     }
-    printf("exec.entry = 0x%0x\n",exec.entry - 1);
+    printf("exec.entry = 0x%0x\n",exec.entry);
     //  ret = jumpTo(&exec);
     freeElf(&exec);
-    return (memarray + exec.entry - 1);
+    printf("actual address = 0x%0x\n",memarray + exec.entry);
+    return (exec.entry);
   } 
   else {
     MSG("Invalid EXEC");
