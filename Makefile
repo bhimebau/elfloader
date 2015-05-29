@@ -1,68 +1,39 @@
-SRC=main.c loader.c arm/fault.c
-ASRC=arm/startup_ARMCM4.S
+SRC=loader.c 
+TARGET=libelfloader.a
+INCLUDE=elfloader.h
 
-TARGET=elfloader
+CC=gcc
+AS=gcc
+LD=gcc
+AR=ar
 
-CROSS=arm-none-eabi-
-CC=$(CROSS)gcc
-AS=$(CROSS)gcc
-LD=$(CROSS)gcc
+CFLAGS=-O3 -Wno-int-to-pointer-cast
+LDFLAGS=
 
-CFLAGS=-O0 -ggdb3 -mcpu=cortex-m3 -mthumb \
-	-flto -ffunction-sections -fdata-sections \
-	-Iarm/CMSIS/include -I.
-
-LDFLAGS=--specs=rdimon.specs \
-  -Wl,--start-group -lgcc -lc -lc -lm -lrdimon -Wl,--end-group \
-  -Wl,--gc-sections \
-  -L ldscripts -T gcc.ld \
-  -mcpu=cortex-m4 -mthumb
-
-OBJS=$(SRC:.c=.o) $(ASRC:.S=.o)
+OBJS=$(SRC:.c=.o) 
 DEPS=$(SRC:.c=.d)
 
 all: $(TARGET)
 
 -include $(DEPS)
 
+$(TARGET): $(OBJS) 
+	$(AR) rcs $@ $(OBJS) 
+
 %.o: %.c
 	@echo " CC $<"
 	@$(CC) -MMD $(CFLAGS) -o $@ -c $<
 
-%.o: %.S
-	@echo " AS $<"
-	@$(AS) $(CFLAGS) -o $@ -c $<
-
-.PHONY: clean all debug app
-
-$(TARGET): $(OBJS)
-	@echo " LINK $@"
-	@$(LD) -o $@ $(LDFLAGS) $^
-
-app:
-	@$(MAKE) -C app clean all list
+.PHONY: clean all 
 
 clean:
 	@echo " CLEAN"
-	@rm -fR $(OBJS) $(DEPS) $(TARGET)
+	@rm -fR $(OBJS) $(TARGET)
 
-debug: $(TARGET) app
-	@echo " Debuggin..."
-	@$(CROSS)gdb $(TARGET) \
-		-ex 'target remote :3333' \
-		-ex 'monitor reset halt' \
-		-ex 'load' \
-		-ex 'monitor arm semihosting enable'
+install: $(TARGET)
+	cp $(TARGET) ../../lib 
+	cp $(INCLUDE) ../../inc
 
-run: $(TARGET) app
-	@echo " Debuggin..."
-	@$(CROSS)gdb $(TARGET) \
-		-ex 'target remote :3333' \
-		-ex 'monitor reset halt' \
-		-ex 'load' \
-		-ex 'monitor arm semihosting enable' \
-		-ex 'continue'
+etags:
+	find . -type f -iname "*.[ch]" | xargs etags --append
 
-oocd: app
-	@echo " Launch OpenOCD for stm32f4discovery"
-	@cd app && openocd -f board/stm32f4discovery.cfg -l oocd.log

@@ -41,7 +41,7 @@
 
 #ifndef DOX
 
-#if 0
+#if 1
 #define LOADER_FD_T FILE *
 #define LOADER_OPEN_FOR_RD(path) fopen(path, "rb")
 #define LOADER_FD_VALID(fd) (fd != NULL)
@@ -88,7 +88,7 @@ extern void arch_jumpTo(entry_t entry);
 #endif
 
 #define DBG(...) printf("ELF: " __VA_ARGS__)
-#define ERR(msg) do { perror("ELF: " msg); __asm__ volatile ("bkpt"); } while(0)
+#define ERR(msg) perror("ELF: " msg)
 #define MSG(msg) puts("ELF: " msg)
 
 #else
