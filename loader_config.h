@@ -65,9 +65,9 @@
 #define LOADER_ALIGN_ALLOC(size, align, perm) ((void*) memalign(align, size))
 #else
 
-extern void *do_alloc(size_t size, size_t align, ELFSecPerm_t perm);
+extern void *do_alloc(size_t size, size_t align, ELFSecPerm_t perm, Elf32_Shdr *h);
 
-#define LOADER_ALIGN_ALLOC(size, align, perm) do_alloc(size, align, perm)
+#define LOADER_ALIGN_ALLOC(size, align, perm, h) do_alloc(size, align, perm, h)
 
 #endif
 
